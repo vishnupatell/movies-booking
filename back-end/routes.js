@@ -4,6 +4,9 @@ const Ticket = require("./schema"); // Import the Ticket schema
 const cors = require("cors");
 const app = express();
 const zod = require("zod");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const token = "mytoken";
 import { Signup } from "./schema";
 const { signupSchema } = require("./zodSchema");
 
@@ -21,6 +24,7 @@ router.post("/signup",async(req, res) => {
     }
 
     const {name,email,password,mobile,address,city,state} = req.body;
+    const hashedPassword = await bcrypt.hash(password,10);
     const find = await Signup.findOne({email:email});
     if(find){
       return res.status(400).json({message:"Email already exists"});
@@ -28,19 +32,51 @@ router.post("/signup",async(req, res) => {
     const signup = await  Signup.create ({
       name,
       email,
-      password,
+      password:hashedPassword,
       mobile,
       address,
       city,
       state,
       });
       if(signup){
-        return res.status(200).json({message:"Signup successful"});
+        const token = jwt.sign({email:email},token);
+        return res.status(200).json({
+          token:token,
+          message:"Signup successful"
+        });
       }
   }catch(error){
     res.status(500).json({message:"Something went wrong! Please try again."});
   }
   
+})
+
+router.post("/login",async(req,res) => {
+  try{
+    const {email,password} = req.body;
+    const hashedPassword = await bcrypt.compare(password,10);
+    const find = await Signup.findOne({email:email});
+    if(!find){
+      return res.status(400).json({
+        message:"Email not found"
+      });
+    }
+    if(find.password !== hashedPassword){
+      return res.status(400).json({
+        message:"Incorrect password"
+      });
+    }
+    const token = jwt.sign({email:email},token);
+    return res.status(200).json({
+      token:token,
+      message:"Login successful"
+    });
+  }
+  catch(error){
+    res.status(500).json({
+      message:"Something went wrong! Please try again."
+    });
+  }
 })
 
 
