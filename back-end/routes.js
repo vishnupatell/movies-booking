@@ -3,10 +3,46 @@ const router = express.Router();
 const Ticket = require("./schema"); // Import the Ticket schema
 const cors = require("cors");
 const app = express();
+const zod = require("zod");
+import { Signup } from "./schema";
+const { signupSchema } = require("./zodSchema");
 
 // Middleware setup
 router.use(express.json()); // Parse incoming JSON data
 router.use(cors()); // Enable Cross-Origin Resource Sharing (CORS)
+
+//Endpoint for signup and adding it to the database.
+router.post("/signup",async(req, res) => {
+  try{
+    const body = require(body);
+    const validateZod = signupSchema.safeParse(body);
+    if(!validateZod.success){
+      return res.status(400).json({message:validateZod.error.errors});
+    }
+
+    const {name,email,password,mobile,address,city,state} = req.body;
+    const find = await Signup.findOne({email:email});
+    if(find){
+      return res.status(400).json({message:"Email already exists"});
+    }
+    const signup = await  Signup.create ({
+      name,
+      email,
+      password,
+      mobile,
+      address,
+      city,
+      state,
+      });
+      if(signup){
+        return res.status(200).json({message:"Signup successful"});
+      }
+  }catch(error){
+    res.status(500).json({message:"Something went wrong! Please try again."});
+  }
+  
+})
+
 
 // Endpoint for creating a new booking and adding it to the database.
 router.post("/booking", async (req, res) => {

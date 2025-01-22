@@ -12,6 +12,22 @@ const TicketSchema = new mongoose.Schema({
     D2: { type: Number },
   },
 });
+
+const  signupSchema = new mongoose.Schema({
+  name: { type: String },
+  email: { type: String },
+  password: { type: String },
+  mobile: { type: Number },
+  address: { type: String },
+  city: { type: String },
+  state: { type: String },
+});
+
 // Registering the schema with the Mongoose model.
 const Ticket = mongoose.model('bookmovietickets', TicketSchema);
-module.exports = Ticket;
+const Signup = mongoose.model('signup', signupSchema);
+module.exports = {
+    Ticket,
+    Signup
+
+}
