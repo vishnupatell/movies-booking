@@ -1,23 +1,21 @@
 const express = require("express");
 const router = express.Router();
-const Ticket = require("./schema"); // Import the Ticket schema
 const cors = require("cors");
 const app = express();
 const zod = require("zod");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const token = "mytoken";
-import { Signup } from "./schema";
+const {Signup, Ticket} = require("./schema");
 const { signupSchema } = require("./zodSchema");
 
 // Middleware setup
 router.use(express.json()); // Parse incoming JSON data
 router.use(cors()); // Enable Cross-Origin Resource Sharing (CORS)
-
 //Endpoint for signup and adding it to the database.
 router.post("/signup",async(req, res) => {
   try{
-    const body = require(body);
+    const body = req.body;
     const validateZod = signupSchema.safeParse(body);
     if(!validateZod.success){
       return res.status(400).json({message:validateZod.error.errors});
@@ -29,6 +27,7 @@ router.post("/signup",async(req, res) => {
     if(find){
       return res.status(400).json({message:"Email already exists"});
     }
+  
     const signup = await  Signup.create ({
       name,
       email,
@@ -39,9 +38,9 @@ router.post("/signup",async(req, res) => {
       state,
       });
       if(signup){
-        const token = jwt.sign({email:email},token);
+        const authToken = jwt.sign({email:email}, token);
         return res.status(200).json({
-          token:token,
+          token:authToken,
           message:"Signup successful"
         });
       }
@@ -54,21 +53,23 @@ router.post("/signup",async(req, res) => {
 router.post("/login",async(req,res) => {
   try{
     const {email,password} = req.body;
-    const hashedPassword = await bcrypt.compare(password,10);
     const find = await Signup.findOne({email:email});
     if(!find){
+      console.log("inside if")
       return res.status(400).json({
         message:"Email not found"
       });
     }
-    if(find.password !== hashedPassword){
+    console.log(find);
+    const hashed =  await bcrypt.compare(password,find.password);
+    if(!hashed){
       return res.status(400).json({
         message:"Incorrect password"
       });
     }
-    const token = jwt.sign({email:email},token);
+    const jwtToken = jwt.sign({email:email},token);
     return res.status(200).json({
-      token:token,
+      token:jwtToken,
       message:"Login successful"
     });
   }

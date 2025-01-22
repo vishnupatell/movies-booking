@@ -13,6 +13,7 @@ const TicketSchema = new mongoose.Schema({
   },
 });
 
+
 const  signupSchema = new mongoose.Schema({
   name: { type: String },
   email: { type: String },
@@ -26,6 +27,7 @@ const  signupSchema = new mongoose.Schema({
 // Registering the schema with the Mongoose model.
 const Ticket = mongoose.model('bookmovietickets', TicketSchema);
 const Signup = mongoose.model('signup', signupSchema);
+
 module.exports = {
     Ticket,
     Signup
